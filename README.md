@@ -1,0 +1,2 @@
+# Used_goods_trading_Platform_for_campus
+校园二手交易小程序--数据库期末课程设计
