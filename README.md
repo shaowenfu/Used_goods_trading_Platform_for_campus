@@ -5,7 +5,8 @@
 
 ## 更新日志
 <details>
-  - 项目初始化
+ <summary>日志详情</summary>
+- 项目初始化
 - 基础页面结构搭建
   - logs页面实现
   - utils工具类创建
