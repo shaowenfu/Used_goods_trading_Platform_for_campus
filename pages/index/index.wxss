@@ -1,0 +1,22 @@
+/* 主容器样式 */
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f7f7f7;
+}
+
+/* 按钮样式 */
+.admin-btn {
+  background-color: #007aff; /* 微信蓝色 */
+  color: white;
+  font-size: 16px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+.admin-btn:active {
+  background-color: #005bb5; /* 点击时颜色加深 */
+}

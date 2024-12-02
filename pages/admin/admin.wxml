@@ -1,0 +1,820 @@
+<!-- 管理后台主页面 -->
+<view class="container">
+  <!-- 顶部导航栏 -->
+  <view class="header">
+    <view class="header-title">校园二手物品交易平台</view>
+    <view class="header-right">
+      <text class="admin-name">管理员 aho</text>
+      <text class="logout-btn" bindtap="handleLogout">退出登录</text>
+    </view>
+  </view>
+
+  <!-- 主体内容区 -->
+  <view class="main">
+    <!-- 左侧导航菜单 -->
+    <view class="sidebar">
+      <!-- 首页/数据概览 -->
+      <view class="menu-item {{currentMenu === 'dashboard' ? 'active' : ''}}" 
+            data-menu="dashboard" 
+            bindtap="switchMenu">
+        <image class="menu-icon" src="/pages/img/dashboard.png"></image>
+        <text>平台概览</text>
+      </view>
+
+      <!-- 商品管理 -->
+      <view class="menu-group">
+        <view class="menu-item" bindtap="toggleSubmenu" data-group="products">
+          <image class="menu-icon" src="/pages/img/product.png"></image>
+          <text>商品管理</text>
+          <image class="arrow {{submenuOpen.products ? 'open' : ''}}" src="/images/arrow.png"></image>
+        </view>
+        <view class="submenu {{submenuOpen.products ? 'show' : ''}}">
+          <view class="submenu-item" bindtap="handleSubmenuItem" data-menu="productList">商品列表</view>
+          <view class="submenu-item" bindtap="handleSubmenuItem" data-menu="addProduct">添加商品</view>
+          <view class="submenu-item" bindtap="handleSubmenuItem" data-menu="categoryList">分类管理</view>
+        </view>
+      </view>
+
+      <!-- 学生管理 -->
+      <view class="menu-group">
+        <view class="menu-item" bindtap="toggleSubmenu" data-group="users">
+          <image class="menu-icon" src="/pages/img/user.png"></image>
+          <text>学生管理</text>
+          <image class="arrow {{submenuOpen.users ? 'open' : ''}}" src="/images/arrow.png"></image>
+        </view>
+        <view class="submenu {{submenuOpen.users ? 'show' : ''}}">
+          <view class="submenu-item" bindtap="handleSubmenuItem" data-menu="userManage">用户管理</view>
+          <view class="submenu-item" bindtap="handleSubmenuItem" data-menu="marketerManage">商家管理</view>
+        </view>
+      </view>
+
+      <!-- 订单管理 -->
+      <view class="menu-group">
+        <view class="menu-item" bindtap="toggleSubmenu" data-group="orders">
+          <image class="menu-icon" src="/pages/img/order.png"></image>
+          <text>订单管理</text>
+          <image class="arrow {{submenuOpen.orders ? 'open' : ''}}" src="/images/arrow.png"></image>
+        </view>
+        <view class="submenu {{submenuOpen.orders ? 'show' : ''}}">
+          <view class="submenu-item" bindtap="handleSubmenuItem" data-menu="orderList">订单列表</view>
+          <view class="submenu-item" bindtap="handleSubmenuItem" data-menu="orderDetail">订单明细</view>
+        </view>
+      </view>
+
+      <!-- 内容管理 -->
+      <view class="menu-group">
+        <view class="menu-item" bindtap="toggleSubmenu" data-group="content">
+          <image class="menu-icon" src="/pages/img/content.png"></image>
+          <text>内容管理</text>
+          <image class="arrow {{submenuOpen.content ? 'open' : ''}}" src="/images/arrow.png"></image>
+        </view>
+        <view class="submenu {{submenuOpen.content ? 'show' : ''}}">
+          <view class="submenu-item" bindtap="handleSubmenuItem" data-menu="newsList">新闻管理</view>
+          <view class="submenu-item" bindtap="handleSubmenuItem" data-menu="commentList">评论管理</view>
+        </view>
+      </view>
+
+      <!-- 系统设置 -->
+      <view class="menu-group">
+        <view class="menu-item" bindtap="toggleSubmenu" data-group="system">
+          <image class="menu-icon" src="/pages/img/setting.png"></image>
+          <text>系统设置</text>
+          <image class="arrow {{submenuOpen.system ? 'open' : ''}}" src="/images/arrow.png"></image>
+        </view>
+        <view class="submenu {{submenuOpen.system ? 'show' : ''}}">
+          <view class="submenu-item" bindtap="handleSubmenuItem" data-menu="addressList">地址管理</view>
+          <view class="submenu-item" bindtap="handleSubmenuItem" data-menu="cartList">购物车管理</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 右侧内容展示区 -->
+    <view class="content">
+      <view class="content-header">
+        <text class="content-title">{{pageTitle}}</text>
+      </view>
+      <view class="content-body">
+        <!-- 欢迎页面 -->
+        <block wx:if="{{currentMenu === 'home' || !currentMenu}}">
+          <view class="welcome-container">
+            <view class="welcome-title">欢迎使用校园二手物品交易平台管理系统</view>
+            <view class="welcome-text">
+              请从左侧菜单选择要进行的操作。如需帮助，请联系系统管理员。
+            </view>
+          </view>
+        </block>
+
+        <!-- 商品列表 -->
+        <block wx:if="{{currentMenu === 'productList'}}">
+          <view class="search-form">
+            <!-- 搜索表单分两行显示 -->
+            <view class="search-row">
+              <input class="search-input" 
+                     type="text" 
+                     placeholder="商品名称" 
+                     model:value="{{searchForm.name}}" />
+              <input class="search-input" 
+                     type="text" 
+                     placeholder="分类ID" 
+                     model:value="{{searchForm.categoryId}}" />
+            </view>
+            <view class="search-row">
+              <picker class="status-picker" 
+                      bindchange="handleStatusChange" 
+                      value="{{searchForm.status}}" 
+                      range="{{statusOptions}}" 
+                      range-key="label">
+                <view class="picker-content">
+                  <text>{{searchForm.status === '' ? '状态' : statusOptions[searchForm.status].label}}</text>
+                  <text class="picker-arrow">▼</text>
+                </view>
+              </picker>
+              <button class="search-btn" bindtap="handleSearch">搜索</button>
+              <button class="reset-btn" bindtap="handleReset">重置</button>
+            </view>
+          </view>
+
+          <!-- 商品列表表格 -->
+          <view class="table">
+            <view class="tr header">
+              <view class="th">商品信息</view>
+              <view class="th">价格</view>
+              <view class="th">状态</view>
+              <view class="th">操作</view>
+            </view>
+            <view class="tr" wx:for="{{productList}}" wx:key="id">
+              <view class="td product-info">
+                <image class="product-image" src="{{item.image}}" mode="aspectFill"></image>
+                <view class="product-detail">
+                  <view class="product-name">{{item.name}}</view>
+                  <view class="product-category">分类：{{item.categoryName}}</view>
+                </view>
+              </view>
+              <view class="td">¥{{item.price}}</view>
+              <view class="td">
+                <text class="status-tag {{item.status === 1 ? 'status-on' : 'status-off'}}">
+                  {{item.status === 1 ? '在售' : '下架'}}
+                </text>
+              </view>
+              <view class="td operation">
+                <button class="op-btn edit" bindtap="editProduct" data-id="{{item.id}}">编辑</button>
+                <button class="op-btn delete" bindtap="deleteProduct" data-id="{{item.id}}">删除</button>
+              </view>
+            </view>
+          </view>
+
+          <!-- 分页器 -->
+          <view class="pagination">
+            <view class="page-info">
+              共 {{total}} 条记录，第 {{currentPage}}/{{Math.ceil(total/pageSize)}} 页
+            </view>
+            <view class="page-buttons">
+              <button class="page-btn" 
+                      disabled="{{currentPage <= 1}}" 
+                      bindtap="handlePageChange" 
+                      data-page="{{currentPage - 1}}">上一页</button>
+              <button class="page-btn" 
+                      disabled="{{currentPage >= Math.ceil(total/pageSize)}}" 
+                      bindtap="handlePageChange" 
+                      data-page="{{currentPage + 1}}">下一页</button>
+            </view>
+          </view>
+        </block>
+
+        <!-- 平台概览页面 -->
+        <block wx:if="{{currentMenu === 'dashboard'}}">
+          <view class="dashboard-container">
+            <!-- 数据概览卡片 -->
+            <view class="overview-cards">
+              <view class="card">
+                <view class="card-icon user-icon">
+                  <image src="/pages/img/user-stats.png"></image>
+                </view>
+                <view class="card-content">
+                  <view class="card-title">总用户数</view>
+                  <view class="card-number">{{overview.userCount || 0}}</view>
+                  <view class="card-desc">平台注册用户总数</view>
+                </view>
+              </view>
+
+              <view class="card">
+                <view class="card-icon order-icon">
+                  <image src="/pages/img/order-stats.png"></image>
+                </view>
+                <view class="card-content">
+                  <view class="card-title">总订单数</view>
+                  <view class="card-number">{{overview.orderCount || 0}}</view>
+                  <view class="card-desc">累计交易订单数</view>
+                </view>
+              </view>
+
+              <view class="card">
+                <view class="card-icon product-icon">
+                  <image src="/pages/img/product-stats.png"></image>
+                </view>
+                <view class="card-content">
+                  <view class="card-title">在售商品</view>
+                  <view class="card-number">{{overview.productCount || 0}}</view>
+                  <view class="card-desc">当前在售商品数量</view>
+                </view>
+              </view>
+
+              <view class="card">
+                <view class="card-icon money-icon">
+                  <image src="/pages/img/money-stats.png"></image>
+                </view>
+                <view class="card-content">
+                  <view class="card-title">总交易额</view>
+                  <view class="card-number">¥{{overview.totalAmount || '0.00'}}</view>
+                  <view class="card-desc">平台累计交易金额</view>
+                </view>
+              </view>
+            </view>
+
+            <!-- 今日数据 -->
+            <view class="today-stats">
+              <view class="section-title">今日数据</view>
+              <view class="stats-grid">
+                <view class="stats-item">
+                  <text class="stats-label">新增用户</text>
+                  <text class="stats-value">{{overview.todayNewUsers || 0}}</text>
+                </view>
+                <view class="stats-item">
+                  <text class="stats-label">新增订单</text>
+                  <text class="stats-value">{{overview.todayNewOrders || 0}}</text>
+                </view>
+                <view class="stats-item">
+                  <text class="stats-label">今日交易额</text>
+                  <text class="stats-value">¥{{overview.todayAmount || '0.00'}}</text>
+                </view>
+                <view class="stats-item">
+                  <text class="stats-label">订单完成率</text>
+                  <text class="stats-value">{{overview.orderCompletionRate || '0'}}%</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 添加商品页面 -->
+        <block wx:if="{{currentMenu === 'addProduct'}}">
+          <view class="form-container">
+            <form bindsubmit="handleAddProduct">
+              <view class="form-group">
+                <text class="form-label">商品名称</text>
+                <input class="form-input" 
+                       name="name" 
+                       placeholder="请输入商品名称" 
+                       value="{{productForm.name}}" />
+              </view>
+
+              <view class="form-group">
+                <text class="form-label">商品分类</text>
+                <picker class="form-picker" 
+                        bindchange="handleCategoryChange" 
+                        range="{{categories}}" 
+                        range-key="name">
+                  <view class="picker-content">
+                    <text>{{productForm.categoryId ? categories[productForm.categoryId].name : '请选择分类'}}</text>
+                    <text class="picker-arrow">▼</text>
+                  </view>
+                </picker>
+              </view>
+
+              <view class="form-group">
+                <text class="form-label">商品价格</text>
+                <input class="form-input" 
+                       type="digit" 
+                       name="price" 
+                       placeholder="请输入商品价格" 
+                       value="{{productForm.price}}" />
+              </view>
+
+              <view class="form-group">
+                <text class="form-label">商品数量</text>
+                <input class="form-input" 
+                       type="number" 
+                       name="amount" 
+                       placeholder="请输入商品数量" 
+                       value="{{productForm.amount}}" />
+              </view>
+
+              <view class="form-group">
+                <text class="form-label">商品图片</text>
+                <view class="image-uploader" bindtap="chooseImage">
+                  <image wx:if="{{productForm.image}}" 
+                         src="{{productForm.image}}" 
+                         mode="aspectFill" 
+                         class="uploaded-image" />
+                  <view wx:else class="upload-placeholder">
+                    <text class="upload-icon">+</text>
+                    <text class="upload-text">上传图片</text>
+                  </view>
+                </view>
+              </view>
+
+              <view class="form-group">
+                <text class="form-label">商品描述</text>
+                <textarea class="form-textarea" 
+                          name="description" 
+                          placeholder="请输入商品描述" 
+                          value="{{productForm.description}}" />
+              </view>
+
+              <button class="submit-btn" form-type="submit">添加商品</button>
+            </form>
+          </view>
+        </block>
+
+        <!-- 分类管理页面 -->
+        <block wx:if="{{currentMenu === 'categoryList'}}">
+          <view class="category-container">
+            <!-- 添加分类 -->
+            <view class="category-form">
+              <input class="category-input" 
+                     placeholder="分类名称" 
+                     value="{{categoryForm.name}}" 
+                     bindinput="handleCategoryInput" />
+              <input class="category-input" 
+                     type="number" 
+                     placeholder="排序" 
+                     value="{{categoryForm.sort}}" 
+                     bindinput="handleSortInput" />
+              <button class="category-btn" bindtap="handleAddCategory">添加分类</button>
+            </view>
+
+            <!-- 分类列表 -->
+            <view class="category-list">
+              <view class="category-header">
+                <text class="col-name">分类名称</text>
+                <text class="col-sort">排序</text>
+                <text class="col-status">状态</text>
+                <text class="col-op">操作</text>
+              </view>
+              <view class="category-item" wx:for="{{categories}}" wx:key="id">
+                <text class="col-name">{{item.name}}</text>
+                <text class="col-sort">{{item.sort}}</text>
+                <view class="col-status">
+                  <switch checked="{{item.status === 1}}" 
+                          bindchange="handleStatusChange" 
+                          data-id="{{item.id}}" />
+                </view>
+                <view class="col-op">
+                  <button class="op-btn edit" 
+                          size="mini" 
+                          bindtap="editCategory" 
+                          data-id="{{item.id}}">编辑</button>
+                  <button class="op-btn delete" 
+                          size="mini" 
+                          bindtap="deleteCategory" 
+                          data-id="{{item.id}}">删除</button>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 用户管理页面 -->
+        <block wx:if="{{currentMenu === 'userManage'}}">
+          <view class="user-container">
+            <!-- 用户搜索 -->
+            <view class="search-form">
+              <view class="search-row">
+                <input class="search-input" 
+                       placeholder="用户名/手机号" 
+                       model:value="{{userSearchForm.keyword}}" />
+                <image class="search-icon" 
+                       src="/pages/img/search.png" 
+                       bindtap="handleUserSearch"></image>
+              </view>
+            </view>
+
+            <!-- 用户列表 -->
+            <view class="user-list">
+              <view class="list-header">
+                <text class="col-3">用户信息</text>
+                <text class="col-2">手机号</text>
+                <text class="col-1">操作</text>
+              </view>
+              <view class="list-item" wx:for="{{userList}}" wx:key="id">
+                <view class="col-3 user-info">
+                  <view class="primary-text">{{item.name}}</view>
+                  <view class="secondary-text">注册时间：{{item.createTime}}</view>
+                </view>
+                <text class="col-2">{{item.phone}}</text>
+                <view class="col-1 op-btns">
+                  <button class="mini-btn" 
+                          bindtap="editUser" 
+                          data-id="{{item.id}}">编辑</button>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 商家管理页面 -->
+        <block wx:if="{{currentMenu === 'marketerManage'}}">
+          <view class="marketer-container">
+            <!-- 商家搜索和添加 -->
+            <view class="search-form">
+              <view class="search-row">
+                <input class="search-input" 
+                       placeholder="商家名/手机号" 
+                       model:value="{{marketerSearchForm.keyword}}" />
+                <image class="search-icon" 
+                       src="/pages/img/search.png" 
+                       bindtap="handleMarketerSearch"></image>
+              </view>
+              <button class="add-btn" bindtap="showAddMarketerModal">
+                <image class="add-icon" src="/pages/img/add.png"></image>
+                添加商家
+              </button>
+            </view>
+
+            <!-- 商家列表 -->
+            <view class="marketer-list">
+              <view class="list-header">
+                <text class="col-3">商家信息</text>
+                <text class="col-2">状态</text>
+                <text class="col-2">操作</text>
+              </view>
+              <view class="list-item" wx:for="{{marketerList}}" wx:key="id">
+                <view class="col-3 marketer-info">
+                  <view class="primary-text">{{item.name}}</view>
+                  <view class="secondary-text">{{item.phone}}</view>
+                </view>
+                <view class="col-1">
+                  <text class="status-tag {{item.status === 1 ? 'status-on' : 'status-off'}}">
+                    {{item.status === 1 ? '启用' : '禁用'}}
+                  </text>
+                </view>
+                <view class="col-2 op-btns">
+                  <button class="mini-btn primary" 
+                          bindtap="editMarketer" 
+                          data-id="{{item.id}}">编辑</button>
+                  <button class="mini-btn {{item.status === 1 ? 'warning' : 'success'}}" 
+                          bindtap="toggleMarketerStatus" 
+                          data-id="{{item.id}}" 
+                          data-status="{{item.status}}">
+                    {{item.status === 1 ? '禁用' : '启用'}}
+                  </button>
+                  <button class="mini-btn danger" 
+                          bindtap="deleteMarketer" 
+                          data-id="{{item.id}}">删除</button>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 订单列表页面 -->
+        <block wx:if="{{currentMenu === 'orderList'}}">
+          <view class="order-container">
+            <!-- 订单搜索 -->
+            <view class="search-form">
+              <view class="search-row">
+                <input class="search-input" 
+                       placeholder="订单号/用户名" 
+                       model:value="{{orderSearchForm.keyword}}" />
+                <picker class="status-picker" 
+                        bindchange="handleOrderStatusChange" 
+                        value="{{orderSearchForm.status}}" 
+                        range="{{orderStatusOptions}}" 
+                        range-key="label">
+                  <view class="picker-content">
+                    <text>{{orderSearchForm.status === '' ? '订单状态' : orderStatusOptions[orderSearchForm.status].label}}</text>
+                    <text class="picker-arrow">▼</text>
+                  </view>
+                </picker>
+                <image class="search-icon" 
+                       src="/pages/img/search.png" 
+                       bindtap="handleOrderSearch"></image>
+              </view>
+            </view>
+
+            <!-- 订单列表 -->
+            <view class="order-list">
+              <view wx:for="{{orderList}}" wx:key="id" class="order-item">
+                <view class="order-header">
+                  <view class="order-info">
+                    <text class="order-number">订单号：{{item.number}}</text>
+                    <text class="order-time">{{item.orderTime}}</text>
+                  </view>
+                  <text class="order-status {{item.status === 4 ? 'success' : item.status === 5 ? 'danger' : ''}}">
+                    {{orderStatusMap[item.status]}}
+                  </text>
+                </view>
+
+                <view class="order-content">
+                  <view class="user-info">
+                    <text class="label">买家：</text>
+                    <text>{{item.userName}}</text>
+                  </view>
+                  <view class="contact-info">
+                    <text class="label">联系方式：</text>
+                    <text>{{item.phone}}</text>
+                  </view>
+                  <view class="amount-info">
+                    <text class="label">订单金额：</text>
+                    <text class="amount">¥{{item.amount}}</text>
+                  </view>
+                </view>
+
+                <view class="order-footer">
+                  <button class="mini-btn" 
+                          bindtap="viewOrderDetail" 
+                          data-id="{{item.id}}">查看详情</button>
+                  <block wx:if="{{item.status === 2}}">
+                    <button class="mini-btn primary" 
+                            bindtap="handleOrder" 
+                            data-id="{{item.id}}" 
+                            data-action="accept">接单</button>
+                  </block>
+                  <block wx:if="{{item.status !== 4 && item.status !== 5}}">
+                    <button class="mini-btn warning" 
+                            bindtap="showProblemModal" 
+                            data-id="{{item.id}}">问题反馈</button>
+                  </block>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 订单详情页面 -->
+        <block wx:if="{{currentMenu === 'orderDetail' && currentOrderId}}">
+          <view class="order-detail-container">
+            <view class="detail-card">
+              <view class="card-header">
+                <text class="card-title">订单信息</text>
+                <text class="order-status {{orderDetail.status === 4 ? 'success' : orderDetail.status === 5 ? 'danger' : ''}}">
+                  {{orderStatusMap[orderDetail.status]}}
+                </text>
+              </view>
+
+              <view class="info-section">
+                <view class="info-item">
+                  <text class="label">订单编号：</text>
+                  <text>{{orderDetail.number}}</text>
+                </view>
+                <view class="info-item">
+                  <text class="label">下单时间：</text>
+                  <text>{{orderDetail.orderTime}}</text>
+                </view>
+                <view class="info-item">
+                  <text class="label">支付方式：</text>
+                  <text>{{orderDetail.payMethod === 1 ? '微信支付' : '支付宝支付'}}</text>
+                </view>
+              </view>
+
+              <view class="divider"></view>
+
+              <view class="info-section">
+                <text class="section-title">收货信息</text>
+                <view class="info-item">
+                  <text class="label">收货人：</text>
+                  <text>{{orderDetail.consignee}}</text>
+                </view>
+                <view class="info-item">
+                  <text class="label">联系电话：</text>
+                  <text>{{orderDetail.phone}}</text>
+                </view>
+                <view class="info-item">
+                  <text class="label">收货地址：</text>
+                  <text>{{orderDetail.address}}</text>
+                </view>
+              </view>
+
+              <view class="divider"></view>
+
+              <view class="info-section">
+                <text class="section-title">商品信息</text>
+                <view class="product-list">
+                  <view wx:for="{{orderDetail.products}}" wx:key="id" class="product-item">
+                    <image class="product-image" src="{{item.image}}" mode="aspectFill"></image>
+                    <view class="product-info">
+                      <text class="product-name">{{item.name}}</text>
+                      <view class="product-price-count">
+                        <text class="price">¥{{item.amount}}</text>
+                        <text class="count">x{{item.number}}</text>
+                      </view>
+                    </view>
+                  </view>
+                </view>
+              </view>
+
+              <view class="divider"></view>
+
+              <view class="amount-section">
+                <view class="amount-item">
+                  <text>商品总额</text>
+                  <text class="amount">¥{{orderDetail.amount}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 新闻管理页面 -->
+        <block wx:if="{{currentMenu === 'newsList'}}">
+          <view class="news-container">
+            <!-- 添加新闻按钮 -->
+            <view class="action-bar">
+              <button class="add-btn" bindtap="showAddNewsModal">
+                <image class="add-icon" src="/pages/img/add.png"></image>
+                发布新闻
+              </button>
+            </view>
+
+            <!-- 新闻列表 -->
+            <view class="news-list">
+              <view wx:for="{{newsList}}" wx:key="id" class="news-item">
+                <view class="news-header">
+                  <image class="news-image" 
+                         src="{{item.image}}" 
+                         mode="aspectFill"></image>
+                  <view class="news-info">
+                    <view class="news-detail">{{item.detail}}</view>
+                    <view class="news-meta">
+                      <text class="news-sort">排序：{{item.sort}}</text>
+                      <text class="status-tag {{item.status === 1 ? 'status-on' : 'status-off'}}">
+                        {{item.status === 1 ? '启用' : '禁用'}}
+                      </text>
+                    </view>
+                  </view>
+                </view>
+                <view class="news-actions">
+                  <button class="mini-btn primary" 
+                          bindtap="editNews" 
+                          data-id="{{item.id}}">编辑</button>
+                  <button class="mini-btn {{item.status === 1 ? 'warning' : 'success'}}" 
+                          bindtap="toggleNewsStatus" 
+                          data-id="{{item.id}}" 
+                          data-status="{{item.status}}">
+                    {{item.status === 1 ? '禁用' : '启用'}}
+                  </button>
+                  <button class="mini-btn danger" 
+                          bindtap="deleteNews" 
+                          data-id="{{item.id}}">删除</button>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 评论管理页面 -->
+        <block wx:if="{{currentMenu === 'commentList'}}">
+          <view class="comment-container">
+            <!-- 评论搜索 -->
+            <view class="search-form">
+              <view class="search-row">
+                <input class="search-input" 
+                       placeholder="用户名/评论内容" 
+                       model:value="{{commentSearchForm.keyword}}" />
+                <image class="search-icon" 
+                       src="/pages/img/search.png" 
+                       bindtap="handleCommentSearch"></image>
+              </view>
+            </view>
+
+            <!-- 评论列表 -->
+            <view class="comment-list">
+              <view wx:for="{{commentList}}" wx:key="id" class="comment-item">
+                <view class="comment-header">
+                  <view class="user-info">
+                    <text class="username">{{item.userName}}</text>
+                    <text class="comment-time">{{item.createTime}}</text>
+                  </view>
+                  <button class="mini-btn danger" 
+                          bindtap="deleteComment" 
+                          data-id="{{item.id}}">删除</button>
+                </view>
+                <view class="comment-content">{{item.detail}}</view>
+                <view class="comment-target">
+                  <text class="label">评论对象：</text>
+                  <text>{{item.marketName}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 地址管理页面 -->
+        <block wx:if="{{currentMenu === 'addressList'}}">
+          <view class="address-container">
+            <!-- 地址搜索 -->
+            <view class="search-form">
+              <view class="search-row">
+                <input class="search-input" 
+                       placeholder="用户名/手机号" 
+                       model:value="{{addressSearchForm.keyword}}" />
+                <image class="search-icon" 
+                       src="/pages/img/search.png" 
+                       bindtap="handleAddressSearch"></image>
+              </view>
+            </view>
+
+            <!-- 地址列表 -->
+            <view class="address-list">
+              <view wx:for="{{addressList}}" wx:key="id" class="address-item">
+                <view class="address-header">
+                  <view class="user-info">
+                    <text class="username">{{item.consignee}}</text>
+                    <text class="phone">{{item.phone}}</text>
+                    <text class="default-tag" wx:if="{{item.isDefault === 1}}">默认</text>
+                  </view>
+                </view>
+                <view class="address-content">
+                  <view class="area-info">
+                    <text class="label">园区：</text>
+                    <text>{{item.area}}</text>
+                  </view>
+                  <view class="detail-info">
+                    <text class="label">详细地址：</text>
+                    <text>{{item.dormitoriesId}}栋{{item.unitNumber}}单元{{item.doorCode}}号</text>
+                  </view>
+                </view>
+                <view class="address-footer">
+                  <button class="mini-btn primary" 
+                          bindtap="editAddress" 
+                          data-id="{{item.id}}">编辑</button>
+                </view>
+              </view>
+            </view>
+
+            <!-- 分页器 -->
+            <view class="pagination">
+              <view class="page-info">共 {{addressTotal}} 条记录</view>
+              <view class="page-buttons">
+                <button class="page-btn" 
+                        disabled="{{addressCurrentPage <= 1}}" 
+                        bindtap="handleAddressPageChange" 
+                        data-page="{{addressCurrentPage - 1}}">上一页</button>
+                <button class="page-btn" 
+                        disabled="{{addressCurrentPage >= Math.ceil(addressTotal/pageSize)}}" 
+                        bindtap="handleAddressPageChange" 
+                        data-page="{{addressCurrentPage + 1}}">下一页</button>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 购物车管理页面 -->
+        <block wx:if="{{currentMenu === 'cartList'}}">
+          <view class="cart-container">
+            <!-- 购物车搜索 -->
+            <view class="search-form">
+              <view class="search-row">
+                <input class="search-input" 
+                       placeholder="用户名/商品名" 
+                       model:value="{{cartSearchForm.keyword}}" />
+                <image class="search-icon" 
+                       src="/pages/img/search.png" 
+                       bindtap="handleCartSearch"></image>
+              </view>
+            </view>
+
+            <!-- 购物车列表 -->
+            <view class="cart-list">
+              <view wx:for="{{cartList}}" wx:key="id" class="cart-item">
+                <view class="cart-header">
+                  <text class="username">用户：{{item.userName}}</text>
+                  <text class="time">{{item.createTime}}</text>
+                </view>
+                <view class="cart-content">
+                  <image class="product-image" 
+                         src="{{item.image}}" 
+                         mode="aspectFill"></image>
+                  <view class="product-info">
+                    <view class="product-name">{{item.name}}</view>
+                    <view class="product-detail">
+                      <text class="price">¥{{item.amount}}</text>
+                      <text class="count">x{{item.number}}</text>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </view>
+
+            <!-- 分页器 -->
+            <view class="pagination">
+              <view class="page-info">共 {{cartTotal}} 条记录</view>
+              <view class="page-buttons">
+                <button class="page-btn" 
+                        disabled="{{cartCurrentPage <= 1}}" 
+                        bindtap="handleCartPageChange" 
+                        data-page="{{cartCurrentPage - 1}}">上一页</button>
+                <button class="page-btn" 
+                        disabled="{{cartCurrentPage >= Math.ceil(cartTotal/pageSize)}}" 
+                        bindtap="handleCartPageChange" 
+                        data-page="{{cartCurrentPage + 1}}">下一页</button>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 其他内容区域根据需要添加 -->
+      </view>
+    </view>
+  </view>
+</view> 

@@ -1,0 +1,5 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 按钮设计 -->
+  <button class="admin-btn" bindtap="navigateToAdmin">跳转到管理员界面</button>
+</view>
